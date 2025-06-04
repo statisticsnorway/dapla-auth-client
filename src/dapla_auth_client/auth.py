@@ -157,7 +157,6 @@ class AuthClient:
 
         Args:
             request: The GoogleAuthRequest object.
-            _scopes: The scopes to request.
 
         Raises:
             RuntimeError: If the request to the OIDC token exchange endpoint fails.
@@ -209,7 +208,6 @@ class AuthClient:
 
         Args:
             request: The GoogleAuthRequest object.
-            scopes: The scopes to request.
 
         Raises:
             RuntimeError: If the token exchange fails.
