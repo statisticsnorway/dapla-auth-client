@@ -361,7 +361,8 @@ class AuthClient:
             str: The OIDC token.
 
         Raises:
-            MissingConfigurationException: If the OIDC_TOKEN environment variable is missing or is not set.
+            MissingConfigurationException: If required environment variables are missing.
+            AuthError: If the token exchange fails.
 
         If Dapla Region is BIP, retrieve the Keycloak token jupyterhub.
 
