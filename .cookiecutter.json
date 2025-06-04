@@ -1,0 +1,22 @@
+{
+  "_copy_without_render": [
+    "*.rst_t"
+  ],
+  "_jinja2_env_vars": {
+    "lstrip_blocks": true,
+    "trim_blocks": true
+  },
+  "_template": "https://github.com/statisticsnorway/ssb-pypitemplate.git",
+  "author": "Statistikktjenester",
+  "code_quality_level": "High",
+  "copyright_owner": "Statistics Norway",
+  "copyright_year": "2025",
+  "development_status": "Development Status :: 5 - Production/Stable",
+  "email": "contact-email@ssb.no",
+  "friendly_name": "Dapla Auth Client",
+  "github_organization": "statisticsnorway",
+  "license": "MIT",
+  "package_name": "dapla_auth_client",
+  "project_name": "dapla-auth-client",
+  "version": "0.0.0"
+}
