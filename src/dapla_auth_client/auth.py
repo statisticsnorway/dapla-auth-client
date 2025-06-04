@@ -10,7 +10,6 @@ import google.auth
 import requests
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2.credentials import Credentials
-from IPython.display import HTML, display
 
 from dapla_auth_client.const import DaplaEnvironment, DaplaRegion, DaplaService
 
@@ -55,10 +54,7 @@ class AuthClient:
         return region
 
     @staticmethod
-    def _refresh_handler(
-        request: GoogleAuthRequest,
-        scopes: Sequence[str],
-    ) -> tuple[str, datetime]:
+    def _refresh_handler() -> tuple[str, datetime]:
         # We manually override the refresh_handler method with our custom logic for fetching tokens.
         # Previously, we directly overrode the `refresh` method. However, this
         # approach led to deadlock issues in gcsfs/credentials.py's maybe_refresh method.
@@ -105,7 +101,7 @@ class AuthClient:
             scope: Optional list of scopes to include in the token exchange request.
 
         Raises:
-            AuthError: If the region is not DAPLA_LAB, or if the HTTP request fails.
+            RuntimeError: If the region is not DAPLA_LAB, or if the HTTP request fails.
             MissingConfigurationException: If LABID_TOKEN_EXCHANGE_URL is not set.
 
         Returns:
@@ -114,7 +110,7 @@ class AuthClient:
 
         _, _, region = AuthClient._get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
-            raise AuthError("Dapla Lab region not detected.")
+            raise RuntimeError("Dapla Lab region not detected.")
 
         labid_url = os.getenv("LABID_TOKEN_EXCHANGE_URL")
         if labid_url is None:
@@ -145,11 +141,11 @@ class AuthClient:
 
         except requests.RequestException as e:
             logger.error(f"Failed to fetch Keycloak token: {e}")
-            raise AuthError("Failed to fetch Keycloak token for Dapla Lab.") from e
+            raise RuntimeError("Failed to fetch Keycloak token for Dapla Lab.") from e
 
     @staticmethod
     def fetch_google_token_from_oidc_exchange(
-        request: GoogleAuthRequest, _scopes: Seq[str]
+        request: GoogleAuthRequest,
     ) -> tuple[str, datetime]:
         """Fetches the Google token by exchanging an OIDC token.
 
@@ -158,13 +154,13 @@ class AuthClient:
             _scopes: The scopes to request.
 
         Raises:
-            AuthError: If the request to the OIDC token exchange endpoint fails.
+            RuntimeError: If the request to the OIDC token exchange endpoint fails.
 
         Returns:
             A tuple of (google-token, expiry).
         """
         if os.getenv("OIDC_TOKEN_EXCHANGE_URL") is None:
-            raise AuthError(
+            raise RuntimeError(
                 "env variable 'OIDC_TOKEN_EXCHANGE_URL' was not found when "
                 "attempting token exchange with OIDC endpoint"
             )
@@ -188,7 +184,7 @@ class AuthClient:
         else:
             error = json.loads(response.data)
             print("Error: ", error.get("error_description", "Unknown error"))
-            raise AuthError("OIDC token exchange failed.")
+            raise RuntimeError("OIDC token exchange failed.")
 
     @staticmethod
     def fetch_google_token(
@@ -205,7 +201,7 @@ class AuthClient:
             scopes: The scopes to request.
 
         Raises:
-            AuthError: If the token exchange fails.
+            RuntimeError: If the token exchange fails.
 
         Returns:
             A tuple of (google-token, expiry).
@@ -213,15 +209,12 @@ class AuthClient:
         try:
             if request is None:
                 request = GoogleAuthRequest()
-            if scopes is None:
-                scopes = []
 
             google_token, expiry = AuthClient.fetch_google_token_from_oidc_exchange(
-                request, scopes
+                request
             )
-        except AuthError as err:
-            err._print_warning()
-            raise err
+        except Exception as err:
+            raise RuntimeError(str(err))
 
         return google_token, expiry
 
@@ -233,7 +226,7 @@ class AuthClient:
             force_token_exchange: Forces authentication by token exchange.
 
         Raises:
-            AuthError: If fails to fetch credentials.
+            RuntimeError: If fails to fetch credentials.
 
         Returns:
             The Google "Credentials" object.
@@ -278,7 +271,7 @@ class AuthClient:
                     logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
                     adc_env = os.getenv("DAPLA_GROUP_CONTEXT")
                     if adc_env is None:
-                        raise AuthError(
+                        raise RuntimeError(
                             "Dapla Group selection feature is not enabled. "
                             "This is necessary in order to access buckets in Dapla Lab. "
                             "The feature needs to be enabled *before* starting the service, "
@@ -294,9 +287,8 @@ class AuthClient:
                     logger.debug("Auth - Default authentication used (ADC)")
                     credentials, _ = google.auth.default()
 
-        except AuthError as err:
-            err._print_warning()
-            raise err
+        except Exception as err:
+            raise RuntimeError(str(err))
 
         return credentials
 
@@ -306,7 +298,7 @@ class AuthClient:
 
         _, _, region = AuthClient._get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
-            raise AuthError("Dapla Lab region not detected.")
+            raise RuntimeError("Dapla Lab region not detected.")
 
         logger.debug("Auth - Dapla Lab detected, returning Keycloak token")
         keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
@@ -325,20 +317,6 @@ class AuthClient:
         )
 
         return response.json().get("email") if response.status_code == 200 else None
-
-
-class AuthError(Exception):
-    """This exception class is used when the communication with the custom auth handler fails.
-
-    This is normally due to stale auth session.
-    """
-
-    def _print_warning(self) -> None:
-        display(
-            HTML(
-                "Your session has timed out. Please close the browser tab and open a new one to reauthenticate.<br>"
-            )
-        )
 
 
 class MissingConfigurationException(Exception):

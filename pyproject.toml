@@ -18,7 +18,6 @@ Changelog = "https://github.com/statisticsnorway/dapla-auth-client/releases"
 python = ">=3.10,<4.0"
 requests = ">=2.27.1"
 google-auth = ">=2.40.2"
-ipython = ">=8.10.0"
 pytest = "^8.4.0"
 
 [tool.poetry.group.dev.dependencies]
