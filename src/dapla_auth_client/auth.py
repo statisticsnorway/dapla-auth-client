@@ -1,10 +1,10 @@
 import json
 import logging
 import os
-from collections.abc import Sequence
+from deprecated import deprecated
 from datetime import datetime, timedelta
 from functools import lru_cache
-from typing import Optional, Sequence as Seq
+from typing import Optional
 
 import google.auth
 import requests
@@ -61,7 +61,7 @@ class AuthClient:
         return AuthClient.fetch_google_token()
 
     @staticmethod
-    def _fetch_kubernetes_token() -> str:
+    def _read_kubernetes_token() -> str:
         """
         Fetches the Kubernetes service account token from the default file path.
         This function reads the token from the file located at
@@ -116,7 +116,7 @@ class AuthClient:
         if labid_url is None:
             raise MissingConfigurationException("LABID_TOKEN_EXCHANGE_URL")
 
-        kubernetes_token = AuthClient._fetch_kubernetes_token()
+        kubernetes_token = AuthClient._read_kubernetes_token()
         try:
             response = requests.post(
                 url=labid_url,
@@ -144,6 +144,12 @@ class AuthClient:
             raise RuntimeError("Failed to fetch Keycloak token for Dapla Lab.") from e
 
     @staticmethod
+    @deprecated(
+        reason=(
+            "fetch_google_token_from_oidc_exchange() is deprecated and will be removed in a future release. "
+            "Use Kubernetes/ADC auto-discovery instead of manually exchanging OIDC tokens."
+        )
+    )
     def fetch_google_token_from_oidc_exchange(
         request: GoogleAuthRequest,
     ) -> tuple[str, datetime]:
@@ -187,9 +193,14 @@ class AuthClient:
             raise RuntimeError("OIDC token exchange failed.")
 
     @staticmethod
+    @deprecated(
+        reason=(
+            "fetch_google_token() is deprecated and will be removed in a future release. "
+            "Kubernetes/ADC now auto-discovers credentials for you."
+        )
+    )
     def fetch_google_token(
         request: Optional[GoogleAuthRequest] = None,
-        scopes: Optional[Seq[str]] = None,
     ) -> tuple[str, datetime]:
         """Fetches the Google token for the current user.
 
@@ -219,6 +230,12 @@ class AuthClient:
         return google_token, expiry
 
     @staticmethod
+    @deprecated(
+        reason=(
+            "fetch_google_credentials() is deprecated and will be removed in a future release. "
+            "On Kubernetes, Application Default Credentials (ADC) will auto-discover for you."
+        )
+    )
     def fetch_google_credentials(force_token_exchange: bool = False) -> Credentials:
         """Fetches the Google credentials for the current user.
 
@@ -253,34 +270,8 @@ class AuthClient:
                     logger.debug("Auth - Cloud Run detected, using ADC")
                     credentials, _ = google.auth.default()
 
-                case (
-                    _,
-                    DaplaService.JUPYTERLAB,
-                    DaplaRegion.ON_PREM,
-                ):
-                    logger.debug("Auth - JupyterLab detected, using token exchange")
-                    token, expiry = AuthClient.fetch_google_token()
-                    credentials = Credentials(
-                        token=token,
-                        expiry=expiry,
-                        token_uri="https://oauth2.googleapis.com/token",
-                        refresh_handler=AuthClient._refresh_handler,
-                    )
-
                 case (_, _, DaplaRegion.DAPLA_LAB):
                     logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
-                    adc_env = os.getenv("DAPLA_GROUP_CONTEXT")
-                    if adc_env is None:
-                        raise RuntimeError(
-                            "Dapla Group selection feature is not enabled. "
-                            "This is necessary in order to access buckets in Dapla Lab. "
-                            "The feature needs to be enabled *before* starting the service, "
-                            "and can be done in the 'Buckets' configuration tab"
-                        )
-                    logger.debug(
-                        "Auth - 'DAPLA_GROUP_CONTEXT' env variable is set, "
-                        f"using ADC as group {adc_env}"
-                    )
                     credentials, _ = google.auth.default()
 
                 case (_, _, _):
@@ -306,6 +297,13 @@ class AuthClient:
 
     @staticmethod
     @lru_cache(maxsize=1)
+    @deprecated(
+        reason=(
+            "fetch_email_from_credentials() is deprecated and will be removed in a future release. "
+            "Kubernetes/Google ADC now auto-discovers credentials. "
+            "You can rely on Application Default Credentials (ADC) instead of calling this explicitly."
+        )
+    )
     def fetch_email_from_credentials() -> Optional[str]:
         """Retrieves an e-mail based on current Google Credentials. Potentially makes a Google API call."""
         if os.getenv("DAPLA_REGION") == DaplaRegion.DAPLA_LAB.value:
