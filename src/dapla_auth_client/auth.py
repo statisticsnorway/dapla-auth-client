@@ -1,26 +1,18 @@
 import json
 import logging
 import os
-import typing as t
 from collections.abc import Sequence
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import lru_cache
-from functools import partial
-from typing import Any
-from typing import Optional
+from typing import Optional, Sequence as Seq
 
 import google.auth
 import requests
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2.credentials import Credentials
-from IPython.display import HTML
-from IPython.display import display
-from jupyterhub.services.auth import HubAuth
+from IPython.display import HTML, display
 
-from dapla_auth_client.const import DaplaEnvironment
-from dapla_auth_client.const import DaplaRegion
-from dapla_auth_client.const import DaplaService
+from dapla_auth_client.const import DaplaEnvironment, DaplaRegion, DaplaService
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +20,7 @@ logger = logging.getLogger(__name__)
 # The change was directed towards high latency environments, and should not apply to us.
 # Since we can't force a refresh, the threshold is lowered to keep us from waiting ~4 minutes for a new token.
 # A permanent fix would be to supply credentials with a refresh endpoint
-# that allways returns a token that is valid for more than 3m 45s.
+# that always returns a token that is valid for more than 3m 45s.
 google.auth._helpers.REFRESH_THRESHOLD = timedelta(seconds=20)
 
 
@@ -80,8 +72,10 @@ class AuthClient:
         "/var/run/secrets/kubernetes.io/serviceaccount/token". It ensures that
         the token is not empty or invalid and raises appropriate exceptions
         if the file is missing or the token is invalid.
+
         Returns:
             str: The Kubernetes service account token.
+
         Raises:
             FileNotFoundError: If the token file is not found at the specified path.
             ValueError: If the token file is empty or contains invalid data.
@@ -100,18 +94,24 @@ class AuthClient:
     def _exchange_kubernetes_token_for_keycloak_token(
         audience: Optional[list[str]] = None, scope: Optional[list[str]] = None
     ) -> tuple[str, datetime]:
-        """Fetches the Keycloak token for the current user in Dapla Lab.
+        """Fetches a Keycloak token for the current user in Dapla Lab.
 
-        This method is used to fetch the Keycloak token when running in Dapla Lab.
-        It exchanges the Kubernetes token for a Keycloak token using the LABID_TOKEN_EXCHANGE_URL.
+        This method exchanges the Kubernetes service account token for a Keycloak token
+        using the LABID_TOKEN_EXCHANGE_URL environment variable. It requires the
+        Dapla Lab region to be set and the LABID_TOKEN_EXCHANGE_URL to be configured.
+
+        Args:
+            audience: Optional list of audiences to include in the token exchange request.
+            scope: Optional list of scopes to include in the token exchange request.
 
         Raises:
-            AuthError: If the request to the LABID_TOKEN_EXCHANGE_URL fails.
-            MissingConfigurationException: If required environment variables are missing.
+            AuthError: If the region is not DAPLA_LAB, or if the HTTP request fails.
+            MissingConfigurationException: If LABID_TOKEN_EXCHANGE_URL is not set.
 
         Returns:
             A tuple of (keycloak-token, expiry).
         """
+
         _, _, region = AuthClient._get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
             raise AuthError("Dapla Lab region not detected.")
@@ -139,14 +139,17 @@ class AuthClient:
             response.raise_for_status()
             auth_data = response.json()
             expiry = datetime.utcnow() + timedelta(seconds=auth_data["expires_in"])
-            return auth_data["access_token"], expiry
+            access_token = auth_data["access_token"]
+
+            return access_token, expiry
+
         except requests.RequestException as e:
             logger.error(f"Failed to fetch Keycloak token: {e}")
             raise AuthError("Failed to fetch Keycloak token for Dapla Lab.") from e
 
     @staticmethod
     def fetch_google_token_from_oidc_exchange(
-        request: GoogleAuthRequest, _scopes: Sequence[str]
+        request: GoogleAuthRequest, _scopes: Seq[str]
     ) -> tuple[str, datetime]:
         """Fetches the Google token by exchanging an OIDC token.
 
@@ -162,9 +165,10 @@ class AuthClient:
         """
         if os.getenv("OIDC_TOKEN_EXCHANGE_URL") is None:
             raise AuthError(
-                "env variable  'OIDC_TOKEN_EXCHANGE_URL' was not found when"
+                "env variable 'OIDC_TOKEN_EXCHANGE_URL' was not found when "
                 "attempting token exchange with OIDC endpoint"
             )
+
         response = request.__call__(
             url=os.environ["OIDC_TOKEN_EXCHANGE_URL"],
             method="POST",
@@ -176,19 +180,20 @@ class AuthClient:
                 "client_id": "onyxia-api",
             },
         )
+
         if response.status == 200:
             auth_data = json.loads(response.data)
             expiry = datetime.utcnow() + timedelta(seconds=auth_data["expires_in"])
             return auth_data["access_token"], expiry
         else:
             error = json.loads(response.data)
-            print("Error: ", error["error_description"])
-            raise AuthError
+            print("Error: ", error.get("error_description", "Unknown error"))
+            raise AuthError("OIDC token exchange failed.")
 
     @staticmethod
     def fetch_google_token(
         request: Optional[GoogleAuthRequest] = None,
-        scopes: Optional[Sequence[str]] = None,
+        scopes: Optional[Seq[str]] = None,
     ) -> tuple[str, datetime]:
         """Fetches the Google token for the current user.
 
@@ -198,14 +203,12 @@ class AuthClient:
         Args:
             request: The GoogleAuthRequest object.
             scopes: The scopes to request.
-            from_jupyterhub: Whether the google token should be exchanged from JupyterHub.
-                if false, exchange from an OIDC endpoint decided by OIDC_TOKEN_EXCHANGE_URL.
 
         Raises:
-            AuthError: If the token exchange.
+            AuthError: If the token exchange fails.
 
         Returns:
-            The Google token.
+            A tuple of (google-token, expiry).
         """
         try:
             if request is None:
@@ -240,6 +243,7 @@ class AuthClient:
             os.getenv("DAPLA_TOOLBELT_FORCE_TOKEN_EXCHANGE") == "1"
             or force_token_exchange
         )
+
         try:
             match (env, service, region):
                 case (_, _, _) if force_token_exchange is True:
@@ -251,9 +255,11 @@ class AuthClient:
                         token_uri="https://oauth2.googleapis.com/token",
                         refresh_handler=AuthClient._refresh_handler,
                     )
+
                 case (_, DaplaService.CLOUD_RUN, _):
                     logger.debug("Auth - Cloud Run detected, using ADC")
                     credentials, _ = google.auth.default()
+
                 case (
                     _,
                     DaplaService.JUPYTERLAB,
@@ -267,6 +273,7 @@ class AuthClient:
                         token_uri="https://oauth2.googleapis.com/token",
                         refresh_handler=AuthClient._refresh_handler,
                     )
+
                 case (_, _, DaplaRegion.DAPLA_LAB):
                     logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
                     adc_env = os.getenv("DAPLA_GROUP_CONTEXT")
@@ -282,9 +289,11 @@ class AuthClient:
                         f"using ADC as group {adc_env}"
                     )
                     credentials, _ = google.auth.default()
+
                 case (_, _, _):
                     logger.debug("Auth - Default authentication used (ADC)")
                     credentials, _ = google.auth.default()
+
         except AuthError as err:
             err._print_warning()
             raise err
@@ -293,28 +302,15 @@ class AuthClient:
 
     @staticmethod
     def fetch_personal_token() -> str:
-        """If Dapla Region is Dapla Lab, retrieve the Keycloak token from the environment.
+        """If Dapla Region is Dapla Lab, retrieve the Keycloak token."""
 
-        Returns:
-            str: The Keycloak token.
-
-        Raises:
-            MissingConfigurationException: If required environment variables are missing.
-            AuthError: If the token exchange fails.
-
-        Returns:
-            str: personal/keycloak token.
-
-        Raises:
-            AuthError: Handles AuthError.
-        """
         _, _, region = AuthClient._get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
             raise AuthError("Dapla Lab region not detected.")
 
-        logger.debug("Auth - Dapla Lab detected, using KEYCLOAK_TOKEN")
-        google_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
-        return google_token
+        logger.debug("Auth - Dapla Lab detected, returning Keycloak token")
+        keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
+        return keycloak_token
 
     @staticmethod
     @lru_cache(maxsize=1)
@@ -338,11 +334,9 @@ class AuthError(Exception):
     """
 
     def _print_warning(self) -> None:
-        (
-            display(
-                HTML(
-                    'Your session has timed out. Please <a href="/hub/login">log in</a> to continue.'
-                )
+        display(
+            HTML(
+                "Your session has timed out. Please close the browser tab and open a new one to reauthenticate.<br>"
             )
         )
 
@@ -354,8 +348,7 @@ class MissingConfigurationException(Exception):
         """Initializes a new instance of the MissingConfigurationException class.
 
         Args:
-        variable_name (str): The name of the missing environment variable or configuration.
-        message (str): The error message to be displayed. Defaults to an empty string.
+            variable_name (str): The name of the missing environment variable or configuration.
         """
         self.variable_name = variable_name
         self.message = f"Missing required environment variable: {variable_name}"
