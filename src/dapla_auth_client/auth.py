@@ -59,19 +59,18 @@ class AuthClient:
     @staticmethod
     def get_dapla_region() -> Optional[DaplaRegion]:
         """Checks if the current Dapla Region is Dapla Lab."""
-        env, service, region = AuthClient._get_current_dapla_metadata()
+        _, _, region = AuthClient._get_current_dapla_metadata()
         return region
 
     @staticmethod
     def _refresh_handler(
         request: GoogleAuthRequest,
         scopes: Sequence[str],
-        from_jupyterhub: bool = False,
     ) -> tuple[str, datetime]:
         # We manually override the refresh_handler method with our custom logic for fetching tokens.
         # Previously, we directly overrode the `refresh` method. However, this
         # approach led to deadlock issues in gcsfs/credentials.py's maybe_refresh method.
-        return AuthClient.fetch_google_token(from_jupyterhub=from_jupyterhub)
+        return AuthClient.fetch_google_token()
 
     @staticmethod
     def _fetch_kubernetes_token() -> str:
@@ -104,7 +103,7 @@ class AuthClient:
         """Fetches the Keycloak token for the current user in Dapla Lab.
 
         This method is used to fetch the Keycloak token when running in Dapla Lab.
-        It exchanges the OIDC token for a Keycloak token using the LABID_TOKEN_EXCHANGE_URL.
+        It exchanges the Kubernetes token for a Keycloak token using the LABID_TOKEN_EXCHANGE_URL.
 
         Raises:
             AuthError: If the request to the LABID_TOKEN_EXCHANGE_URL fails.
@@ -187,60 +186,9 @@ class AuthClient:
             raise AuthError
 
     @staticmethod
-    def fetch_google_token_from_jupyter() -> str:
-        """Fetches the personal access token for the current user.
-
-        Raises:
-            AuthError: If the token exchange request to JupyterHub fails.
-
-        Returns:
-            The personal access token.
-        """
-        try:
-            google_token = AuthClient.fetch_local_user_from_jupyter()[
-                "exchanged_tokens"
-            ]["google"]["access_token"]
-            return t.cast(str, google_token)
-        except AuthError as err:
-            err._print_warning()
-            raise err
-
-    @staticmethod
-    def fetch_local_user_from_jupyter() -> dict[str, Any]:
-        """Retrieves user information, most notably access tokens for use in authentication.
-
-        Raises:
-            AuthError: If the request to the user endpoint fails.
-
-        Returns:
-            The user data from the token .
-        """
-        if os.getenv("LOCAL_USER_PATH") is None:
-            raise AuthError(
-                "env variable LOCAL_USER_PATH was not found when"
-                "attempting token exchange with JupyterLab"
-            )
-
-        # Helps getting the correct ssl configs
-        hub = HubAuth()
-        response = requests.get(
-            os.environ["LOCAL_USER_PATH"],
-            headers={"Authorization": f"token {hub.api_token}"},
-            cert=(hub.certfile, hub.keyfile),
-            verify=hub.client_ca,
-            allow_redirects=False,
-        )
-        if response.status_code == 200:
-            user_data = response.json()
-            return t.cast(dict[str, Any], user_data)
-        else:
-            raise AuthError
-
-    @staticmethod
     def fetch_google_token(
         request: Optional[GoogleAuthRequest] = None,
         scopes: Optional[Sequence[str]] = None,
-        from_jupyterhub: bool = False,
     ) -> tuple[str, datetime]:
         """Fetches the Google token for the current user.
 
@@ -260,22 +208,14 @@ class AuthClient:
             The Google token.
         """
         try:
-            if from_jupyterhub is True:
-                user_info = AuthClient.fetch_local_user_from_jupyter()
-                google_token = user_info["exchanged_tokens"]["google"]["access_token"]
-                expiry = datetime.utcfromtimestamp(
-                    user_info["exchanged_tokens"]["google"]["exp"]
-                )
-            else:
-                if request is None:
-                    request = GoogleAuthRequest()
-                if scopes is None:
-                    scopes = []
+            if request is None:
+                request = GoogleAuthRequest()
+            if scopes is None:
+                scopes = []
 
-                google_token, expiry = AuthClient.fetch_google_token_from_oidc_exchange(
-                    request, scopes
-                )
-
+            google_token, expiry = AuthClient.fetch_google_token_from_oidc_exchange(
+                request, scopes
+            )
         except AuthError as err:
             err._print_warning()
             raise err
@@ -317,17 +257,15 @@ class AuthClient:
                 case (
                     _,
                     DaplaService.JUPYTERLAB,
-                    DaplaRegion.ON_PREM | DaplaRegion.BIP,
+                    DaplaRegion.ON_PREM,
                 ):
                     logger.debug("Auth - JupyterLab detected, using token exchange")
-                    token, expiry = AuthClient.fetch_google_token(from_jupyterhub=True)
+                    token, expiry = AuthClient.fetch_google_token()
                     credentials = Credentials(
                         token=token,
                         expiry=expiry,
                         token_uri="https://oauth2.googleapis.com/token",
-                        refresh_handler=partial(
-                            AuthClient._refresh_handler, from_jupyterhub=True
-                        ),
+                        refresh_handler=AuthClient._refresh_handler,
                     )
                 case (_, _, DaplaRegion.DAPLA_LAB):
                     logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
@@ -355,16 +293,14 @@ class AuthClient:
 
     @staticmethod
     def fetch_personal_token() -> str:
-        """If Dapla Region is Dapla Lab, retrieve the OIDC token/Keycloak token from the environment.
+        """If Dapla Region is Dapla Lab, retrieve the Keycloak token from the environment.
 
         Returns:
-            str: The OIDC token.
+            str: The Keycloak token.
 
         Raises:
             MissingConfigurationException: If required environment variables are missing.
             AuthError: If the token exchange fails.
-
-        If Dapla Region is BIP, retrieve the Keycloak token jupyterhub.
 
         Returns:
             str: personal/keycloak token.
@@ -373,20 +309,12 @@ class AuthClient:
             AuthError: Handles AuthError.
         """
         _, _, region = AuthClient._get_current_dapla_metadata()
-        if region == DaplaRegion.DAPLA_LAB:
-            logger.debug("Auth - Dapla Lab detected, using KEYCLOAK_TOKEN")
-            google_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
-            return google_token
-        else:
-            logger.debug("Auth - BIP detected, using jupyterhub personal token")
-            try:
-                personal_token = AuthClient.fetch_local_user_from_jupyter()[
-                    "access_token"
-                ]
-                return t.cast(str, personal_token)
-            except AuthError as err:
-                err._print_warning()
-                raise err
+        if region != DaplaRegion.DAPLA_LAB:
+            raise AuthError("Dapla Lab region not detected.")
+
+        logger.debug("Auth - Dapla Lab detected, using KEYCLOAK_TOKEN")
+        google_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
+        return google_token
 
     @staticmethod
     @lru_cache(maxsize=1)
