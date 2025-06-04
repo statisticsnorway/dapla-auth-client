@@ -114,7 +114,7 @@ class AuthClient:
             A tuple of (keycloak-token, expiry).
         """
         _, _, region = AuthClient._get_current_dapla_metadata()
-        if region != DaplaRegion.DAPLA_LAB.value:
+        if region != DaplaRegion.DAPLA_LAB:
             raise AuthError("Dapla Lab region not detected.")
 
         labid_url = os.getenv("LABID_TOKEN_EXCHANGE_URL")
