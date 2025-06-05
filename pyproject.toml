@@ -20,6 +20,9 @@ requests = ">=2.27.1"
 google-auth = ">=2.40.2"
 pytest = "^8.4.0"
 deprecated = "^1.2.18"
+types-requests = ">=2.28.11"
+responses = ">=0.24.0"
+types-deprecated = "^1.2.15.20250304"
 
 [tool.poetry.group.dev.dependencies]
 pygments = ">=2.10.0"
