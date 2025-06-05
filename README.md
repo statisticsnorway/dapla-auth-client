@@ -31,7 +31,7 @@
 - Reads Kubernetes service-account token from filesystem
 - Exchanges Kubernetes token for Keycloak token in Dapla Lab
 - Overrides Google-Auth refresh handler to use custom token fetch logic
-- Fetches Google ADC credentials (including Cloud Run or lab-aware logic)
+- Fetches Google ADC credentials
 
 ## Requirements
 
