@@ -1,11 +1,12 @@
 import json
-import requests
 from datetime import datetime
 from datetime import timedelta
 from unittest import mock
-from unittest.mock import Mock, mock_open
+from unittest.mock import Mock
+from unittest.mock import mock_open
 
 import pytest
+import requests  # type: ignore[unused-ignore]
 import responses
 from google.oauth2.credentials import Credentials
 
@@ -26,7 +27,7 @@ auth_endpoint_url = "https://mock-auth.no/user"
 )
 @mock.patch("dapla_auth_client.auth.AuthClient._read_kubernetes_token")
 @mock.patch(
-    "dapla_auth_client.auth.AuthClient._exchange_kubernetes_token_for_keycloak_token"
+    "dapla_auth_client.auth.AuthClient._exchange_kubernetes_token_for_keycloak_token",
 )
 @responses.activate
 def test_fetch_personal_token_for_dapla_lab(
@@ -108,7 +109,7 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
         {
             "access_token": "google_token",
             "expires_in": round((datetime.now() + timedelta(hours=1)).timestamp()),
-        }
+        },
     )
     mock_response.status = 200
     mock_google_request = Mock()
@@ -120,7 +121,7 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
     ):
         client = AuthClient()
         token, _expiry = client.fetch_google_token_from_oidc_exchange(
-            mock_google_request
+            mock_google_request,
         )
 
         assert token == "google_token"
@@ -156,7 +157,9 @@ def test_fetch_google_credentials_from_oidc_exchange(
 
 @mock.patch("dapla_auth_client.auth.AuthClient.fetch_google_token_from_oidc_exchange")
 @mock.patch.dict(
-    "dapla_auth_client.auth.os.environ", {"OIDC_TOKEN": "fake-token"}, clear=True
+    "dapla_auth_client.auth.os.environ",
+    {"OIDC_TOKEN": "fake-token"},
+    clear=True,
 )
 @mock.patch.dict(
     "dapla_auth_client.auth.os.environ",
@@ -187,7 +190,7 @@ def test_fetch_google_credentials_expired(
 def test_credentials_object_refresh_exists() -> None:
     # We test whether the "refresh" method exists,
     # since it might be removed in a future release and we are overriding the method.
-    credentials = Credentials("fake-token")
+    credentials = Credentials("fake-token")  # type: ignore[no-untyped-call]
     assert hasattr(credentials, "refresh")
 
 
@@ -199,7 +202,9 @@ def test_fetch_credentials_force_token_exchange(mock_fetch_google_token: Mock) -
 
 
 @mock.patch.dict(
-    "dapla_auth_client.auth.os.environ", {"DAPLA_SERVICE": "CLOUD_RUN"}, clear=True
+    "dapla_auth_client.auth.os.environ",
+    {"DAPLA_SERVICE": "CLOUD_RUN"},
+    clear=True,
 )
 @mock.patch("dapla_auth_client.auth.google.auth.default")
 def test_fetch_credentials_cloud_run(mock_google_auth_default: Mock) -> None:
@@ -227,7 +232,7 @@ def test_fetch_credentials_default(mock_google_auth_default: Mock) -> None:
     mock_google_auth_default.assert_called_once()
 
 
-def test_read_kubernetes_token_success(tmp_path, monkeypatch):
+def test_read_kubernetes_token_success():
     fake_content = "my-kube-token"
 
     m = mock_open(read_data=fake_content)
@@ -236,8 +241,8 @@ def test_read_kubernetes_token_success(tmp_path, monkeypatch):
         assert token == fake_content
 
 
-def test_read_kubernetes_token_file_not_found(monkeypatch):
-    def raise_filenotfound(path, mode="r", *args, **kwargs):
+def test_read_kubernetes_token_file_not_found() -> None:
+    def raise_filenotfound(path, mode="r", *args, **kwargs):  # type: ignore[no-untyped-def]
         raise FileNotFoundError
 
     with mock.patch("builtins.open", side_effect=raise_filenotfound):
@@ -249,7 +254,7 @@ def test_read_kubernetes_token_file_not_found(monkeypatch):
         )
 
 
-def test_read_kubernetes_token_empty(monkeypatch):
+def test_read_kubernetes_token_empty() -> None:
     m = mock_open(read_data="")
     with mock.patch("builtins.open", m):
         with pytest.raises(ValueError) as excinfo:
@@ -266,10 +271,14 @@ def test_read_kubernetes_token_empty(monkeypatch):
     clear=True,
 )
 @mock.patch.object(
-    AuthClient, "_read_kubernetes_token", return_value="dummy_kube_token"
+    AuthClient,
+    "_read_kubernetes_token",
+    return_value="dummy_kube_token",
 )
 @mock.patch("requests.post")
-def test_exchange_kubernetes_token_success(mock_requests_post, mock_read_kube):
+def test_exchange_kubernetes_token_success(
+    mock_requests_post: Mock, mock_read_kubernetes_token: Mock
+) -> None:
 
     fake_response = Mock()
     fake_response.raise_for_status.return_value = None
@@ -282,7 +291,8 @@ def test_exchange_kubernetes_token_success(mock_requests_post, mock_read_kube):
     mock_requests_post.return_value = fake_response
 
     token, expiry = AuthClient._exchange_kubernetes_token_for_keycloak_token(
-        audience=["aud1", "aud2"], scope=["scope1"]
+        audience=["aud1", "aud2"],
+        scope=["scope1"],
     )
 
     assert token == "keycloak-abc123"
@@ -301,7 +311,7 @@ def test_exchange_kubernetes_token_success(mock_requests_post, mock_read_kube):
     assert called_kwargs["url"] == "https://example.com/exchange"
     assert "Authorization" in called_kwargs["headers"]
     assert called_kwargs["headers"]["Authorization"].startswith(
-        "Bearer dummy_kube_token"
+        "Bearer dummy_kube_token",
     )
     assert "audience" in called_kwargs["data"]
     assert called_kwargs["data"]["audience"] == "aud1,aud2"
@@ -313,7 +323,7 @@ def test_exchange_kubernetes_token_success(mock_requests_post, mock_read_kube):
     {"DAPLA_REGION": "DAPLA_LAB"},
     clear=True,
 )
-def test_exchange_kubernetes_token_missing_url():
+def test_exchange_kubernetes_token_missing_url() -> None:
     with pytest.raises(MissingConfigurationException) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
     assert (
@@ -330,7 +340,7 @@ def test_exchange_kubernetes_token_missing_url():
     },
     clear=True,
 )
-def test_exchange_kubernetes_token_wrong_region():
+def test_exchange_kubernetes_token_wrong_region() -> None:
     with pytest.raises(RuntimeError) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
     assert str(excinfo.value) == "Dapla Lab region not detected."
@@ -345,10 +355,12 @@ def test_exchange_kubernetes_token_wrong_region():
     clear=True,
 )
 @mock.patch.object(
-    AuthClient, "_read_kubernetes_token", return_value="dummy_kube_token"
+    AuthClient,
+    "_read_kubernetes_token",
+    return_value="dummy_kube_token",
 )
 @mock.patch("requests.post", side_effect=requests.RequestException("network-failure"))
-def test_exchange_kubernetes_token_request_failure(mock_requests_post, mock_read_kube):
+def test_exchange_kubernetes_token_request_failure() -> None:
     with pytest.raises(RuntimeError) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
     assert "Failed to fetch Keycloak token for Dapla Lab." in str(excinfo.value)
