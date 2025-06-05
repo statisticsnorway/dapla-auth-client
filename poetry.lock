@@ -1770,6 +1770,33 @@ doc = ["Sphinx (>=7)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)", "sphin
 test = ["coverage[toml] (>=7)", "mypy (>=1.2.0)", "pytest (>=7)"]
 
 [[package]]
+name = "types-deprecated"
+version = "1.2.15.20250304"
+description = "Typing stubs for Deprecated"
+category = "main"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "types_deprecated-1.2.15.20250304-py3-none-any.whl", hash = "sha256:86a65aa550ea8acf49f27e226b8953288cd851de887970fbbdf2239c116c3107"},
+    {file = "types_deprecated-1.2.15.20250304.tar.gz", hash = "sha256:c329030553029de5cc6cb30f269c11f4e00e598c4241290179f63cda7d33f719"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.0.20250602"
+description = "Typing stubs for requests"
+category = "main"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "types_requests-2.32.0.20250602-py3-none-any.whl", hash = "sha256:f4f335f87779b47ce10b8b8597b409130299f6971ead27fead4fe7ba6ea3e726"},
+    {file = "types_requests-2.32.0.20250602.tar.gz", hash = "sha256:ee603aeefec42051195ae62ca7667cd909a2f8128fdf8aad9e8a5219ecfab3bf"},
+]
+
+[package.dependencies]
+urllib3 = ">=2"
+
+[[package]]
 name = "typing-extensions"
 version = "4.14.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -2139,4 +2166,4 @@ tests-strict = ["pytest (==4.6.0)", "pytest (==6.2.5)", "pytest-cov (==3.0.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "66956db4b26829d7132fb673388a096640948b1bf4f07d56cc28842577eade7f"
+content-hash = "d1df933455c32838c032ea9f6bfbbd1c8fa4aa6e5cc10ec3767b1faafb8ceccd"

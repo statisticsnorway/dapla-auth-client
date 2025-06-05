@@ -6,7 +6,7 @@ from unittest.mock import Mock
 from unittest.mock import mock_open
 
 import pytest
-import requests  # type: ignore[unused-ignore]
+import requests
 import responses
 from google.oauth2.credentials import Credentials
 
