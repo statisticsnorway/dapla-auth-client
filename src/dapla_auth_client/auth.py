@@ -291,7 +291,9 @@ class AuthClient:
         return credentials
 
     @staticmethod
-    def fetch_personal_token(scopes: list[str] | None = None) -> str:
+    def fetch_personal_token(
+        scopes: list[str] | None = None,
+    ) -> str:
         """If Dapla Region is Dapla Lab, retrieve the Keycloak token.
 
         This method checks if the current Dapla Region is Dapla Lab and retrieves
@@ -299,7 +301,7 @@ class AuthClient:
         it raises a RuntimeError.
 
         Args:
-            scopes (list[str] | None): Optional list of scopes to include in the token request (ex. current_group, all_groups).
+            scopes (list[str] | None): Optional list of scopes to include in the token request (ex. current_group, all_groups). Defaults to current_group.
 
         Raises:
             RuntimeError: If the region is not DAPLA_LAB.
@@ -312,6 +314,10 @@ class AuthClient:
             raise RuntimeError("Dapla Lab region not detected.")
 
         logger.debug("Auth - Dapla Lab detected, returning Keycloak token")
+
+        if scopes is None:
+            scopes = ["current_group"]
+
         keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token(
             scopes=scopes
         )
