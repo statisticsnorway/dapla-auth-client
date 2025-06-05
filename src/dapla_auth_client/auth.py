@@ -95,7 +95,7 @@ class AuthClient:
     @staticmethod
     def _exchange_kubernetes_token_for_keycloak_token(
         audience: list[str] | None = None,
-        scope: list[str] | None = None,
+        scopes: list[str] | None = None,
     ) -> tuple[str, datetime]:
         """Fetches a Keycloak token for the current user in Dapla Lab.
 
@@ -134,7 +134,7 @@ class AuthClient:
                     "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
                     "subject_token_type": "urn:ietf:params:oauth:grant-type:id_token",
                     "subject_token": kubernetes_token,
-                    **({"scope": ",".join(scope)} if scope else {}),
+                    **({"scope": ",".join(scopes)} if scopes else {}),
                     **({"audience": ",".join(audience)} if audience else {}),
                 },
             )
@@ -291,14 +291,28 @@ class AuthClient:
         return credentials
 
     @staticmethod
-    def fetch_personal_token() -> str:
-        """If Dapla Region is Dapla Lab, retrieve the Keycloak token."""
+    def fetch_personal_token(scopes: list[str] | None = None) -> str:
+        """If Dapla Region is Dapla Lab, retrieve the Keycloak token.
+
+        This method checks if the current Dapla Region is Dapla Lab and retrieves
+        the Keycloak token for the current user. If the region is not Dapla Lab,
+        it raises a RuntimeError.
+
+        Args:
+            scope: Optional list of scopes to include in the token request (ex. ["current_group","all_groups"]).
+        Raises:
+            RuntimeError: If the region is not DAPLA_LAB.
+        Returns:
+            str: The Keycloak token for the current user.
+        """
         _, _, region = AuthClient._get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
             raise RuntimeError("Dapla Lab region not detected.")
 
         logger.debug("Auth - Dapla Lab detected, returning Keycloak token")
-        keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token()
+        keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token(
+            scopes=scopes
+        )
         return keycloak_token
 
     @staticmethod
