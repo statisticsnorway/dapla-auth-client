@@ -69,6 +69,7 @@ class AuthClient:
     @staticmethod
     def _read_kubernetes_token() -> str:
         """Fetches the Kubernetes service account token from the default file path.
+
         This function reads the token from the file located at
         "/var/run/secrets/kubernetes.io/serviceaccount/token". It ensures that
         the token is not empty or invalid and raises appropriate exceptions

@@ -232,7 +232,7 @@ def test_fetch_credentials_default(mock_google_auth_default: Mock) -> None:
     mock_google_auth_default.assert_called_once()
 
 
-def test_read_kubernetes_token_success():
+def test_read_kubernetes_token_success() -> None:
     fake_content = "my-kube-token"
 
     m = mock_open(read_data=fake_content)
@@ -277,7 +277,8 @@ def test_read_kubernetes_token_empty() -> None:
 )
 @mock.patch("requests.post")
 def test_exchange_kubernetes_token_success(
-    mock_requests_post: Mock, mock_read_kubernetes_token: Mock
+    mock_requests_post: Mock,
+    mock_read_kubernetes_token: Mock,
 ) -> None:
 
     fake_response = Mock()
@@ -361,7 +362,8 @@ def test_exchange_kubernetes_token_wrong_region() -> None:
 )
 @mock.patch("requests.post", side_effect=requests.RequestException("network-failure"))
 def test_exchange_kubernetes_token_request_failure(
-    mock_requests_post: Mock, mock_read_kubernetes_token: Mock
+    mock_requests_post: Mock,
+    mock_read_kubernetes_token: Mock,
 ) -> None:
     with pytest.raises(RuntimeError) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
