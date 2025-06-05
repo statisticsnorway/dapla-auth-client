@@ -293,7 +293,7 @@ def test_exchange_kubernetes_token_success(
 
     token, expiry = AuthClient._exchange_kubernetes_token_for_keycloak_token(
         audience=["aud1", "aud2"],
-        scope=["scope1"],
+        scopes=["scope1"],
     )
 
     assert token == "keycloak-abc123"

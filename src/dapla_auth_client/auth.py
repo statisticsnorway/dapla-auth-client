@@ -105,7 +105,7 @@ class AuthClient:
 
         Args:
             audience: Optional list of audiences to include in the token exchange request.
-            scope: Optional list of scopes to include in the token exchange request.
+            scopes: Optional list of scopes to include in the token exchange request.
 
         Raises:
             RuntimeError: If the region is not DAPLA_LAB, or if the HTTP request fails.
@@ -299,9 +299,11 @@ class AuthClient:
         it raises a RuntimeError.
 
         Args:
-            scope: Optional list of scopes to include in the token request (ex. ["current_group","all_groups"]).
+            scopes (list[str] | None): Optional list of scopes to include in the token request (ex. current_group, all_groups).
+
         Raises:
             RuntimeError: If the region is not DAPLA_LAB.
+
         Returns:
             str: The Keycloak token for the current user.
         """
