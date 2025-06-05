@@ -2,7 +2,7 @@
 name = "dapla-auth-client"
 version = "0.0.1"
 description = "Dapla Auth Client"
-authors = ["Dapla Developers <dapla-platform-developers@ssb.no>""]
+authors = ["Dapla Developers <dapla-platform-developers@ssb.no>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/statisticsnorway/dapla-auth-client"
