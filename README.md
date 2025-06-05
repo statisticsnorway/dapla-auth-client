@@ -18,7 +18,6 @@
 [pypi status]: https://pypi.org/project/dapla-auth-client/
 [documentation]: https://statisticsnorway.github.io/dapla-auth-client
 [tests]: https://github.com/statisticsnorway/dapla-auth-client/actions?workflow=Tests
-
 [sonarcov]: https://sonarcloud.io/summary/overall?id=statisticsnorway_dapla-auth-client
 [sonarquality]: https://sonarcloud.io/summary/overall?id=statisticsnorway_dapla-auth-client
 [pre-commit]: https://github.com/pre-commit/pre-commit
@@ -27,11 +26,17 @@
 
 ## Features
 
-- TODO
+- Detects Dapla environment, service, and region via environment variables
+- Retrieves current Dapla region (e.g., checks for DAPLA_LAB)
+- Reads Kubernetes service-account token from filesystem
+- Exchanges Kubernetes token for Keycloak token in Dapla Lab
+- Overrides Google-Auth refresh handler to use custom token fetch logic
+- Fetches Google ADC credentials (including Cloud Run or lab-aware logic)
 
 ## Requirements
 
-- TODO
+- Python >3.8 (3.10 is preferred)
+- Poetry, install via curl -sSL https://install.python-poetry.org | python3 -
 
 ## Installation
 
@@ -43,7 +48,13 @@ pip install dapla-auth-client
 
 ## Usage
 
-Please see the [Reference Guide] for details.
+```python
+# This code snippet demonstrates how to use the Dapla Auth Client to fetch a personal token.
+
+from dapla_auth_client import AuthClient
+
+print(AuthClient.fetch_personal_token())
+```
 
 ## Contributing
 
