@@ -360,7 +360,9 @@ def test_exchange_kubernetes_token_wrong_region() -> None:
     return_value="dummy_kube_token",
 )
 @mock.patch("requests.post", side_effect=requests.RequestException("network-failure"))
-def test_exchange_kubernetes_token_request_failure() -> None:
+def test_exchange_kubernetes_token_request_failure(
+    mock_requests_post: Mock, mock_read_kubernetes_token: Mock
+) -> None:
     with pytest.raises(RuntimeError) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
     assert "Failed to fetch Keycloak token for Dapla Lab." in str(excinfo.value)
