@@ -54,7 +54,9 @@ class AuthClient:
         return region
 
     @staticmethod
-    def _refresh_handler() -> tuple[str, datetime]:
+    def _refresh_handler(
+        *args, scopes: Optional[list[str]], **kwargs
+    ) -> tuple[str, datetime]:
         # We manually override the refresh_handler method with our custom logic for fetching tokens.
         # Previously, we directly overrode the `refresh` method. However, this
         # approach led to deadlock issues in gcsfs/credentials.py's maybe_refresh method.
@@ -152,6 +154,7 @@ class AuthClient:
     )
     def fetch_google_token_from_oidc_exchange(
         request: GoogleAuthRequest,
+        scopes: Optional[list[str]] = None,
     ) -> tuple[str, datetime]:
         """Fetches the Google token by exchanging an OIDC token.
 
@@ -200,6 +203,7 @@ class AuthClient:
     )
     def fetch_google_token(
         request: Optional[GoogleAuthRequest] = None,
+        scopes: Optional[list[str]] = None,
     ) -> tuple[str, datetime]:
         """Fetches the Google token for the current user.
 
