@@ -325,7 +325,7 @@ def test_exchange_kubernetes_token_missing_url():
 @mock.patch.dict(
     "dapla_auth_client.auth.os.environ",
     {
-        "DAPLA_REGION": "DAPLA_PROD",
+        "DAPLA_REGION": "BIP",
         "LABID_TOKEN_EXCHANGE_URL": "https://example.com/exchange",
     },
     clear=True,
