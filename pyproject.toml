@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dapla-auth-client"
-version = "0.0.3"
+version = "0.0.4"
 description = "Dapla Auth Client"
 authors = ["Dapla Developers <dapla-platform-developers@ssb.no>"]
 license = "MIT"
