@@ -154,7 +154,7 @@ class AuthClient:
         reason=(
             "fetch_google_token_from_oidc_exchange() is deprecated and will be removed in a future release. "
             "Use Kubernetes/ADC auto-discovery instead of manually exchanging OIDC tokens. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-06-dapla-auth-client"
+            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
         ),
     )
     def fetch_google_token_from_oidc_exchange(
@@ -204,7 +204,7 @@ class AuthClient:
         reason=(
             "fetch_google_token() is deprecated and will be removed in a future release. "
             "Kubernetes/ADC now auto-discovers credentials for you. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-06-dapla-auth-client"
+            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
         ),
     )
     def fetch_google_token(
@@ -243,7 +243,7 @@ class AuthClient:
         reason=(
             "fetch_google_credentials() is deprecated and will be removed in a future release. "
             "On Kubernetes, Application Default Credentials (ADC) will auto-discover for you. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-06-dapla-auth-client"
+            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
         ),
     )
     def fetch_google_credentials(force_token_exchange: bool = False) -> Credentials:
@@ -333,7 +333,7 @@ class AuthClient:
             "fetch_email_from_credentials() is deprecated and will be removed in a future release. "
             "Kubernetes/Google ADC now auto-discovers credentials. "
             "You can rely on Application Default Credentials (ADC) instead of calling this explicitly. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-06-dapla-auth-client"
+            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
         ),
     )
     def fetch_email_from_credentials() -> str | None:  # type: ignore[unused-ignore]
