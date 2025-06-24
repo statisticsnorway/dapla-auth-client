@@ -47,7 +47,7 @@ class AuthClient:
     @staticmethod
     def get_dapla_region() -> DaplaRegion | None:
         """Checks if the current Dapla Region is Dapla Lab."""
-        _, _, region = AuthClient._get_current_dapla_metadata()
+        _, _, region = AuthClient.get_current_dapla_metadata()
         return region
 
     @staticmethod
@@ -109,7 +109,7 @@ class AuthClient:
         Returns:
             A tuple of (keycloak-token, expiry).
         """
-        _, _, region = AuthClient._get_current_dapla_metadata()
+        _, _, region = AuthClient.get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
             raise RuntimeError("Dapla Lab region not detected.")
 
@@ -253,7 +253,7 @@ class AuthClient:
         Returns:
             The Google "Credentials" object.
         """
-        env, service, region = AuthClient._get_current_dapla_metadata()
+        env, service, region = AuthClient.get_current_dapla_metadata()
         force_token_exchange = (
             os.getenv("DAPLA_TOOLBELT_FORCE_TOKEN_EXCHANGE") == "1"
             or force_token_exchange
@@ -307,7 +307,7 @@ class AuthClient:
         Returns:
             str: The Keycloak token for the current user.
         """
-        _, _, region = AuthClient._get_current_dapla_metadata()
+        _, _, region = AuthClient.get_current_dapla_metadata()
         if region != DaplaRegion.DAPLA_LAB:
             raise RuntimeError("Dapla Lab region not detected.")
 
