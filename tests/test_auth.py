@@ -342,9 +342,9 @@ def test_exchange_kubernetes_token_missing_url() -> None:
     clear=True,
 )
 def test_exchange_kubernetes_token_wrong_region() -> None:
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         AuthClient._exchange_kubernetes_token_for_keycloak_token()
-    assert str(excinfo.value) == "Dapla Lab region not detected."
+    assert str(excinfo.value) == "'BIP' is not a valid DaplaRegion"
 
 
 @mock.patch.dict(

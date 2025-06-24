@@ -33,14 +33,20 @@ class AuthClient:
         tuple[DaplaEnvironment | None, DaplaService | None, DaplaRegion | None]
     ):
         """Read the DAPLA related environment variables and return them as a tuple."""
-        if env := os.getenv("DAPLA_ENVIRONMENT"):
-            env = DaplaEnvironment(env)
+        if env_var := os.getenv("DAPLA_ENVIRONMENT"):
+            env = DaplaEnvironment(env_var)
+        else:
+            env = None
 
-        if service := os.getenv("DAPLA_SERVICE"):
-            service = DaplaService(service)
+        if service_var := os.getenv("DAPLA_SERVICE"):
+            service = DaplaService(service_var)
+        else:
+            service = None
 
-        if region := os.getenv("DAPLA_REGION"):
-            region = DaplaRegion(region)
+        if region_var := os.getenv("DAPLA_REGION"):
+            region = DaplaRegion(region_var)
+        else:
+            region = None
 
         return env, service, region
 
