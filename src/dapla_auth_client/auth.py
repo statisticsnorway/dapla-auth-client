@@ -95,7 +95,7 @@ class AuthClient:
 
     @staticmethod
     def _exchange_kubernetes_token_for_keycloak_token(
-        audience: list[str] | None = None,
+        audiences: list[str] | None = None,
         scopes: list[str] | None = None,
     ) -> tuple[str, datetime]:
         """Fetches a Keycloak token for the current user in Dapla Lab.
@@ -105,7 +105,7 @@ class AuthClient:
         Dapla Lab region to be set and the LABID_TOKEN_EXCHANGE_URL to be configured.
 
         Args:
-            audience: Optional list of audiences to include in the token exchange request.
+            audiences: Optional list of audiences to include in the token exchange request.
             scopes: Optional list of scopes to include in the token exchange request.
 
         Raises:
@@ -136,7 +136,7 @@ class AuthClient:
                     "subject_token_type": "urn:ietf:params:oauth:grant-type:id_token",
                     "subject_token": kubernetes_token,
                     **({"scope": ",".join(scopes)} if scopes else {}),
-                    **({"audience": ",".join(audience)} if audience else {}),
+                    **({"audience": ",".join(audiences)} if audiences else {}),
                 },
             )
             response.raise_for_status()
@@ -297,6 +297,7 @@ class AuthClient:
     @staticmethod
     def fetch_personal_token(
         scopes: list[str] | None = None,
+        audiences: list[str] | None = None,
     ) -> str:
         """If Dapla Region is Dapla Lab, retrieve the Keycloak token.
 
@@ -306,6 +307,7 @@ class AuthClient:
 
         Args:
             scopes (list[str] | None): Optional list of scopes to include in the token request (ex. current_group, all_groups). Defaults to current_group.
+            audiences (list[str] | None): Optional list of audiences to include in the token exchange request.
 
         Raises:
             RuntimeError: If the region is not DAPLA_LAB.
@@ -323,7 +325,7 @@ class AuthClient:
             scopes = ["current_group"]
 
         keycloak_token, _ = AuthClient._exchange_kubernetes_token_for_keycloak_token(
-            scopes=scopes
+            scopes=scopes, audiences=audiences
         )
         return keycloak_token
 
