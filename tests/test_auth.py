@@ -59,7 +59,6 @@ def test_fetch_personal_token_for_dapla_lab(
 def test_fetch_personal_token_error_on_dapla_lab(
     mock_read_kubernetes_token: Mock,
 ) -> None:
-
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
     with pytest.raises(MissingConfigurationException) as exception:
@@ -67,6 +66,49 @@ def test_fetch_personal_token_error_on_dapla_lab(
     assert (
         str(exception.value)
         == "Configuration error: Missing required environment variable: LABID_TOKEN_EXCHANGE_URL"
+    )
+
+
+@pytest.mark.parametrize(
+    ("scopes", "audiences"),
+    [
+        (None, None),
+        ([], []),
+        (["scope1"], ["audience1"]),
+        (["scope1", "scope2"], ["audience1", "audience2"]),
+    ],
+)
+@mock.patch.dict(
+    "dapla_auth_client.auth.os.environ",
+    {
+        "DAPLA_SERVICE": "JUPYTERLAB",
+        "DAPLA_REGION": "DAPLA_LAB",
+    },
+    clear=True,
+)
+@mock.patch("dapla_auth_client.auth.AuthClient._read_kubernetes_token")
+@mock.patch(
+    "dapla_auth_client.auth.AuthClient._exchange_kubernetes_token_for_keycloak_token",
+)
+@responses.activate
+def test_fetch_personal_token_scopes_and_audiences(
+    mock_exchange_kubernetes_token: Mock,
+    mock_read_kubernetes_token: Mock,
+    scopes: list[str],
+    audiences: list[str],
+) -> None:
+    mock_exchange_kubernetes_token.return_value = (
+        "dummy_token",
+        datetime.now() + timedelta(hours=1),
+    )
+    mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
+
+    client = AuthClient()
+    token = client.fetch_personal_token(scopes=scopes, audiences=audiences)
+
+    assert token == "dummy_token"
+    mock_exchange_kubernetes_token.assert_called_once_with(
+        scopes=scopes if scopes is not None else ["current_group"], audiences=audiences
     )
 
 
@@ -280,7 +322,6 @@ def test_exchange_kubernetes_token_success(
     mock_requests_post: Mock,
     mock_read_kubernetes_token: Mock,
 ) -> None:
-
     fake_response = Mock()
     fake_response.raise_for_status.return_value = None
 
@@ -292,7 +333,7 @@ def test_exchange_kubernetes_token_success(
     mock_requests_post.return_value = fake_response
 
     token, expiry = AuthClient._exchange_kubernetes_token_for_keycloak_token(
-        audience=["aud1", "aud2"],
+        audiences=["aud1", "aud2"],
         scopes=["scope1"],
     )
 
