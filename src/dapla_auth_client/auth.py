@@ -29,9 +29,9 @@ class AuthClient:
     """Client for retrieving authentication information."""
 
     @staticmethod
-    def get_current_dapla_metadata() -> tuple[
-        DaplaEnvironment | None, DaplaService | None, DaplaRegion | None
-    ]:
+    def get_current_dapla_metadata() -> (
+        tuple[DaplaEnvironment | None, DaplaService | None, DaplaRegion | None]
+    ):
         """Read the DAPLA related environment variables and return them as a tuple."""
         if env_var := os.getenv("DAPLA_ENVIRONMENT"):
             env = DaplaEnvironment(env_var)
