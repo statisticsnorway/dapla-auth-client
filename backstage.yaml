@@ -15,3 +15,6 @@ spec:
   type: library
   owner: dapla-stat-developers
   lifecycle: production
+  system: dapla-lab
+  dependsOn:
+    - labid
