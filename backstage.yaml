@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dapla-auth-client
+  title: Dapla Auth Client
+  description: |
+    A python client for authenticating requests using the 'LabID' service
+    in the Dapla Lab environment.
+  tags:
+    - python
+    - authentication
+    - OIDC
+  annotations:
+    github.com/project-slug: statisticsnorway/dapla-auth-client
+spec:
+  type: library
+  owner: dapla-stat-developers
+  lifecycle: production
