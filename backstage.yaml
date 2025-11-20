@@ -7,9 +7,8 @@ metadata:
     A python client for authenticating requests using the 'LabID' service
     in the Dapla Lab environment.
   tags:
-    - "python"
-    - "authentication"
-    - "OIDC"
+    - python
+    - authentication
   annotations:
     github.com/project-slug: statisticsnorway/dapla-auth-client
 spec:
