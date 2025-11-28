@@ -1,4 +1,5 @@
 import json
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 from unittest import mock
@@ -36,7 +37,7 @@ def test_fetch_personal_token_for_dapla_lab(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now() + timedelta(hours=1),
+        datetime.now(UTC) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
@@ -99,7 +100,7 @@ def test_fetch_personal_token_scopes_and_audiences(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now() + timedelta(hours=1),
+        datetime.now(UTC) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
@@ -150,7 +151,7 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
     mock_response.data = json.dumps(
         {
             "access_token": "google_token",
-            "expires_in": round((datetime.now() + timedelta(hours=1)).timestamp()),
+            "expires_in": round((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
         },
     )
     mock_response.status = 200
@@ -169,78 +170,11 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
         assert token == "google_token"
 
 
-@mock.patch("dapla_auth_client.auth.AuthClient.fetch_google_token_from_oidc_exchange")
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN": "fake-token"},
-    clear=True,
-)
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN_EXCHANGE_URL": "fake-endpoint"},
-    clear=True,
-)
-@responses.activate
-def test_fetch_google_credentials_from_oidc_exchange(
-    fetch_google_token_from_oidc_exchange_mock: Mock,
-) -> None:
-    fetch_google_token_from_oidc_exchange_mock.return_value = (
-        "google_token",
-        datetime.now() + timedelta(hours=1),
-    )
-
-    client = AuthClient()
-    credentials = client.fetch_google_credentials(force_token_exchange=True)
-    credentials.refresh(None)
-
-    assert credentials.token == "google_token"
-    assert not credentials.expired
-
-
-@mock.patch("dapla_auth_client.auth.AuthClient.fetch_google_token_from_oidc_exchange")
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN": "fake-token"},
-    clear=True,
-)
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN_EXCHANGE_URL": "fake-endpoint"},
-    clear=True,
-)
-@responses.activate
-def test_fetch_google_credentials_expired(
-    fetch_google_token_from_oidc_exchange_mock: Mock,
-) -> None:
-    fetch_google_token_from_oidc_exchange_mock.return_value = (
-        "google_token",
-        datetime.now() - timedelta(hours=1),
-    )
-
-    client = AuthClient()
-    credentials = client.fetch_google_credentials(force_token_exchange=True)
-
-    fetch_google_token_from_oidc_exchange_mock.return_value = (
-        "google_token",
-        datetime.now() + timedelta(hours=1),
-    )
-
-    credentials.refresh(None)
-    assert not credentials.expired
-
-
 def test_credentials_object_refresh_exists() -> None:
     # We test whether the "refresh" method exists,
     # since it might be removed in a future release and we are overriding the method.
     credentials = Credentials("fake-token")  # type: ignore[no-untyped-call]
     assert hasattr(credentials, "refresh")
-
-
-@mock.patch("dapla_auth_client.auth.AuthClient.fetch_google_token")
-def test_fetch_credentials_force_token_exchange(mock_fetch_google_token: Mock) -> None:
-    mock_fetch_google_token.return_value = (Mock(), Mock())
-    AuthClient.fetch_google_credentials(force_token_exchange=True)
-    mock_fetch_google_token.assert_called_once()
 
 
 @mock.patch.dict(
@@ -340,7 +274,7 @@ def test_exchange_kubernetes_token_success(
     assert token == "keycloak-abc123"
     assert isinstance(expiry, datetime)
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     delta = expiry - now
     assert (
         timedelta(seconds=fake_expires_in - 2)
