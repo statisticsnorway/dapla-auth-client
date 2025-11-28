@@ -258,7 +258,7 @@ class AuthClient:
             The Google "Credentials" object.
         """
         env, service, region = AuthClient.get_current_dapla_metadata()
-
+        credentials: Credentials
         try:
             match (env, service, region):
                 case (_, DaplaService.CLOUD_RUN, _):
