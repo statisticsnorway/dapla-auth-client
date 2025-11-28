@@ -28,7 +28,7 @@ types-deprecated = "^1.2.15.20250304"
 pygments = ">=2.10.0"
 black = { extras = ["jupyter"], version = ">=23.1.0" }
 coverage = { extras = ["toml"], version = ">=6.2" }
-darglint = ">=1.8.1"
+darglint = {version = ">=1.8.1", python = ">=3.11,<4.0"}
 furo = ">=2021.11.12"
 mypy = ">=0.930"
 pre-commit = ">=2.16.0"
