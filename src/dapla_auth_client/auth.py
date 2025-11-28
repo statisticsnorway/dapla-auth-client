@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 from datetime import timedelta
+from datetime import UTC
 from functools import lru_cache
 
 import google.auth
@@ -141,7 +142,7 @@ class AuthClient:
             )
             response.raise_for_status()
             auth_data = response.json()
-            expiry = datetime.utcnow() + timedelta(seconds=auth_data["expires_in"])
+            expiry = datetime.now(UTC) + timedelta(seconds=auth_data["expires_in"])
             access_token = auth_data["access_token"]
 
             return access_token, expiry
