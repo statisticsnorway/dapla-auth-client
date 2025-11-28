@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
@@ -141,7 +142,7 @@ class AuthClient:
             )
             response.raise_for_status()
             auth_data = response.json()
-            expiry = datetime.utcnow() + timedelta(seconds=auth_data["expires_in"])
+            expiry = datetime.now(UTC) + timedelta(seconds=auth_data["expires_in"])
             access_token = auth_data["access_token"]
 
             return access_token, expiry
@@ -194,7 +195,7 @@ class AuthClient:
 
         if response.status == 200:
             auth_data = json.loads(response.data)
-            expiry = datetime.utcnow() + timedelta(seconds=auth_data["expires_in"])
+            expiry = datetime.now(UTC) + timedelta(seconds=auth_data["expires_in"])
             return auth_data["access_token"], expiry
         error = json.loads(response.data)
         print("Error: ", error.get("error_description", "Unknown error"))
@@ -247,11 +248,8 @@ class AuthClient:
             "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
         ),
     )
-    def fetch_google_credentials(force_token_exchange: bool = False) -> Credentials:
+    def fetch_google_credentials() -> Credentials:
         """Fetches the Google credentials for the current user.
-
-        Args:
-            force_token_exchange: Forces authentication by token exchange.
 
         Raises:
             RuntimeError: If fails to fetch credentials.
@@ -260,23 +258,9 @@ class AuthClient:
             The Google "Credentials" object.
         """
         env, service, region = AuthClient.get_current_dapla_metadata()
-        force_token_exchange = (
-            os.getenv("DAPLA_TOOLBELT_FORCE_TOKEN_EXCHANGE") == "1"
-            or force_token_exchange
-        )
-
+        credentials: Credentials
         try:
             match (env, service, region):
-                case (_, _, _) if force_token_exchange is True:
-                    logger.debug("Auth - Forced token exchange")
-                    token, expiry = AuthClient.fetch_google_token()
-                    credentials = Credentials(
-                        token=token,
-                        expiry=expiry,
-                        token_uri="https://oauth2.googleapis.com/token",
-                        refresh_handler=AuthClient._refresh_handler,
-                    )  # type: ignore[no-untyped-call]
-
                 case (_, DaplaService.CLOUD_RUN, _):
                     logger.debug("Auth - Cloud Run detected, using ADC")
                     credentials, _ = google.auth.default()  # type: ignore[no-untyped-call]

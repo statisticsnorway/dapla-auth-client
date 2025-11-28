@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dapla-auth-client"
-version = "1.2.0"
+version = "1.2.1"
 description = "Dapla Auth Client"
 authors = ["Dapla Developers <dapla-platform-developers@ssb.no>"]
 license = "MIT"
@@ -15,7 +15,7 @@ packages = [{include = "dapla_auth_client", from = "src"}]
 Changelog = "https://github.com/statisticsnorway/dapla-auth-client/releases"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.11"
 requests = ">=2.27.1"
 google-auth = ">=2.40.2"
 pytest = "^8.4.0"
@@ -28,7 +28,7 @@ types-deprecated = "^1.2.15.20250304"
 pygments = ">=2.10.0"
 black = { extras = ["jupyter"], version = ">=23.1.0" }
 coverage = { extras = ["toml"], version = ">=6.2" }
-darglint = ">=1.8.1"
+darglint = {version = ">=1.8.1", python = ">=3.11,<4.0"}
 furo = ">=2021.11.12"
 mypy = ">=0.930"
 pre-commit = ">=2.16.0"
