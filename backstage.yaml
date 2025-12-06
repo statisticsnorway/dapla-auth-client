@@ -16,5 +16,4 @@ spec:
   owner: dapla-stat-developers
   lifecycle: production
   dependsOn:
-    - system:dapla-lab
-    - component:labid
+    - "component:labid"
