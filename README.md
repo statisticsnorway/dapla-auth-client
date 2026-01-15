@@ -13,7 +13,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Uv]( https://img.shields.io/badge/_-uv-_?logo=uv&color=grey)][uv]
+[![Uv](https://img.shields.io/badge/_-uv-_?logo=uv&labelColor=grey&color=DE5FE9)][uv]
 
 [pypi status]: https://pypi.org/project/dapla-auth-client/
 [documentation]: https://statisticsnorway.github.io/dapla-auth-client
