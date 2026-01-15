@@ -13,7 +13,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)][poetry]
+[![Uv]( https://img.shields.io/badge/_-uv-_?logo=uv&color=grey)][uv]
 
 [pypi status]: https://pypi.org/project/dapla-auth-client/
 [documentation]: https://statisticsnorway.github.io/dapla-auth-client
@@ -22,7 +22,7 @@
 [sonarquality]: https://sonarcloud.io/summary/overall?id=statisticsnorway_dapla-auth-client
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [black]: https://github.com/psf/black
-[poetry]: https://python-poetry.org/
+[uv]: https://docs.astral.sh/uv/
 
 ## Features
 
@@ -36,7 +36,7 @@
 ## Requirements
 
 - Python >3.8 (3.10 is preferred)
-- Poetry, install via curl -sSL https://install.python-poetry.org | python3 -
+- uv, install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## Installation
 
