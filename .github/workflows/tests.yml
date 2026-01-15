@@ -49,7 +49,7 @@ jobs:
         with:
           enable-cache: true
           version: "${{ steps.uv-version.outputs.version }}"
-          python-version: ${{"{{"}} matrix.python {{"}}"}}
+          python-version: "${{ matrix.python }}"
 
       - name: Compute pre-commit cache key
         if: matrix.session == 'pre-commit'
