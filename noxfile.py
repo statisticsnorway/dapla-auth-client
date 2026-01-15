@@ -50,6 +50,7 @@ def install_with_uv(
         *cmd, env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}
     )
 
+
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
     """Activate virtualenv in hooks installed by pre-commit.
 
