@@ -34,28 +34,13 @@ Request features on the [Issue Tracker].
 
 You need Python 3.10+ and the following tools:
 
-- [Poetry]
-- [Nox]
-- [nox-poetry]
+- [uv]
 
 Install [pipx]:
 
 ```console
 python -m pip install --user pipx
 python -m pipx ensurepath
-```
-
-Install [Poetry]:
-
-```console
-pipx install poetry
-```
-
-Install [Nox] and [nox-poetry]:
-
-```console
-pipx install nox
-pipx inject nox nox-poetry
 ```
 
 Install the pre-commit hooks
@@ -67,14 +52,14 @@ nox --session=pre-commit -- install
 Install the package with development requirements:
 
 ```console
-poetry install
+uv sync
 ```
 
 You can now run an interactive Python session, or your app:
 
 ```console
-poetry run python
-poetry run dapla-auth-client
+uv run python
+uv run dapla-auth-client
 ```
 
 ## How to test the project
@@ -82,20 +67,20 @@ poetry run dapla-auth-client
 Run the full test suite:
 
 ```console
-nox
+uvx nox
 ```
 
 List the available Nox sessions:
 
 ```console
-nox --list-sessions
+uvx nox --list-sessions
 ```
 
 You can also run a specific Nox session.
 For example, invoke the unit test suite like this:
 
 ```console
-nox --session=tests
+uvx nox --session=tests
 ```
 
 Unit tests are located in the _tests_ directory,
@@ -116,7 +101,7 @@ Feel free to submit early, though—we can always iterate on this.
 To run linting and code formatting checks before committing your change, you can install pre-commit as a Git hook by running the following command:
 
 ```console
-nox --session=pre-commit -- install
+uvx nox --session=pre-commit -- install
 ```
 
 It is recommended to open an issue before starting work on anything.
@@ -127,9 +112,7 @@ This will allow a chance to talk it over with the owners and validate your appro
 [documentation]: https://statisticsnorway.github.io/dapla-auth-client
 [issue tracker]: https://github.com/statisticsnorway/dapla-auth-client/issues
 [pipx]: https://pipx.pypa.io/
-[poetry]: https://python-poetry.org/
-[nox]: https://nox.thea.codes/
-[nox-poetry]: https://nox-poetry.readthedocs.io/
+[uv]: https://docs.astral.sh/uv/
 [pytest]: https://pytest.readthedocs.io/
 [pull request]: https://github.com/statisticsnorway/dapla-auth-client/pulls
 

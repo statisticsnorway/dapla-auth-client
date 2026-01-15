@@ -290,8 +290,8 @@ class AuthClient:
         it raises a RuntimeError.
 
         Args:
-            scopes (list[str] | None): Optional list of scopes to include in the token request (ex. current_group, all_groups). Defaults to current_group.
-            audiences (list[str] | None): Optional list of audiences to include in the token exchange request.
+            scopes: Optional list of scopes to include in the token request (ex. current_group, all_groups). Defaults to current_group.
+            audiences: Optional list of audiences to include in the token exchange request.
 
         Raises:
             RuntimeError: If the region is not DAPLA_LAB.
@@ -343,7 +343,7 @@ class MissingConfigurationException(Exception):
         """Initializes a new instance of the MissingConfigurationException class.
 
         Args:
-            variable_name (str): The name of the missing environment variable or configuration.
+            variable_name: The name of the missing environment variable or configuration.
         """
         self.variable_name = variable_name
         self.message = f"Missing required environment variable: {variable_name}"
