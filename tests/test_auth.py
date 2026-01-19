@@ -151,9 +151,7 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
     mock_response.data = json.dumps(
         {
             "access_token": "google_token",
-            "expires_in": round(
-                (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()
-            ),
+            "expires_in": round((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
         },
     )
     mock_response.status = 200
