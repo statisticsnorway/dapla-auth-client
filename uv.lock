@@ -354,7 +354,7 @@ dependencies = [
 dev = [
     { name = "black", extra = ["jupyter"] },
     { name = "coverage", extra = ["toml"] },
-    { name = "deptry" },
+    { name = "deptry", marker = "python_full_version < '4'" },
     { name = "furo", marker = "python_full_version >= '3.11'" },
     { name = "mypy" },
     { name = "myst-parser", marker = "python_full_version >= '3.11'" },
@@ -401,7 +401,7 @@ requires-dist = [
 dev = [
     { name = "black", extras = ["jupyter"], specifier = ">=25.11.0" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.11.3" },
-    { name = "deptry", specifier = ">=0.24.0" },
+    { name = "deptry", marker = "python_full_version >= '3.10' and python_full_version < '4'", specifier = ">=0.24.0" },
     { name = "furo", marker = "python_full_version >= '3.11'", specifier = ">=2025.9.25" },
     { name = "mypy", specifier = ">=1.18.2" },
     { name = "myst-parser", marker = "python_full_version >= '3.11'", specifier = ">=4.0.1" },
@@ -461,10 +461,10 @@ name = "deptry"
 version = "0.24.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click" },
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "packaging" },
-    { name = "requirements-parser" },
+    { name = "click", marker = "python_full_version < '4'" },
+    { name = "colorama", marker = "python_full_version < '4' and sys_platform == 'win32'" },
+    { name = "packaging", marker = "python_full_version < '4'" },
+    { name = "requirements-parser", marker = "python_full_version < '4'" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/58/aa/5cae0f25a2ac5334d5bd2782a6bcd80eecf184f433ff74b2fb0387cfbbb6/deptry-0.24.0.tar.gz", hash = "sha256:852e88af2087e03cdf9ece6916f3f58b74191ab51cc8074897951bd496ee7dbb", size = 440158, upload-time = "2025-11-09T00:31:44.637Z" }
@@ -1172,7 +1172,7 @@ name = "requirements-parser"
 version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "packaging" },
+    { name = "packaging", marker = "python_full_version < '4'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/95/96/fb6dbfebb524d5601d359a47c78fe7ba1eef90fc4096404aa60c9a906fbb/requirements_parser-0.13.0.tar.gz", hash = "sha256:0843119ca2cb2331de4eb31b10d70462e39ace698fd660a915c247d2301a4418", size = 22630, upload-time = "2025-05-21T13:42:05.464Z" }
 wheels = [
