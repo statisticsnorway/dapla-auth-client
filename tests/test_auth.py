@@ -100,7 +100,7 @@ def test_fetch_personal_token_scopes_and_audiences(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now(timezone.utc) + timedelta(hours=1),
+        datetime.now(UTC) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 

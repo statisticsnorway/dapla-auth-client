@@ -3,7 +3,6 @@ import logging
 import os
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 from functools import lru_cache
 
 import google.auth
