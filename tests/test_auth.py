@@ -100,7 +100,7 @@ def test_fetch_personal_token_scopes_and_audiences(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now(UTC) + timedelta(hours=1),
+        datetime.now(timezone.utc) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
@@ -151,7 +151,9 @@ def test_fetch_google_token_from_exchange_dapla_lab() -> None:
     mock_response.data = json.dumps(
         {
             "access_token": "google_token",
-            "expires_in": round((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
+            "expires_in": round(
+                (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()
+            ),
         },
     )
     mock_response.status = 200

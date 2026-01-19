@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from functools import lru_cache
 
 import google.auth
@@ -141,7 +142,9 @@ class AuthClient:
             )
             response.raise_for_status()
             auth_data = response.json()
-            expiry = datetime.now(timezone.utc) + timedelta(seconds=auth_data["expires_in"])
+            expiry = datetime.now(timezone.utc) + timedelta(
+                seconds=auth_data["expires_in"]
+            )
             access_token = auth_data["access_token"]
 
             return access_token, expiry
@@ -194,7 +197,9 @@ class AuthClient:
 
         if response.status == 200:
             auth_data = json.loads(response.data)
-            expiry = datetime.now(timezone.utc) + timedelta(seconds=auth_data["expires_in"])
+            expiry = datetime.now(timezone.utc) + timedelta(
+                seconds=auth_data["expires_in"]
+            )
             return auth_data["access_token"], expiry
         error = json.loads(response.data)
         print("Error: ", error.get("error_description", "Unknown error"))
