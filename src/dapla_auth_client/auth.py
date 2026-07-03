@@ -9,8 +9,8 @@ from functools import lru_cache
 import google.auth
 import requests
 from deprecated import deprecated
+from google.auth.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleAuthRequest
-from google.oauth2.credentials import Credentials
 
 from dapla_auth_client.const import DaplaEnvironment
 from dapla_auth_client.const import DaplaRegion
@@ -234,7 +234,7 @@ class AuthClient:
         """
         try:
             if request is None:
-                request = GoogleAuthRequest()  # type: ignore[no-untyped-call]
+                request = GoogleAuthRequest()
 
             google_token, expiry = AuthClient.fetch_google_token_from_oidc_exchange(
                 request,
@@ -267,15 +267,15 @@ class AuthClient:
             match (env, service, region):
                 case (_, DaplaService.CLOUD_RUN, _):
                     logger.debug("Auth - Cloud Run detected, using ADC")
-                    credentials, _ = google.auth.default()  # type: ignore[no-untyped-call]
+                    credentials, _ = google.auth.default()
 
                 case (_, _, DaplaRegion.DAPLA_LAB):
                     logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
-                    credentials, _ = google.auth.default()  # type: ignore[no-untyped-call]
+                    credentials, _ = google.auth.default()
 
                 case (_, _, _):
                     logger.debug("Auth - Default authentication used (ADC)")
-                    credentials, _ = google.auth.default()  # type: ignore[no-untyped-call]
+                    credentials, _ = google.auth.default()
 
         except Exception as err:
             raise RuntimeError(str(err))
