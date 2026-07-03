@@ -16,10 +16,10 @@ dapla\_auth\_client package
 =============================================================================
 
 
-dapla\_auth\_client.functions module
+dapla\_auth\_client.auth module
 -----------------------------------------------------------------------------
 
-.. automodule:: dapla_auth_client.functions
+.. automodule:: dapla_auth_client.auth
    :members:
    :undoc-members:
    :show-inheritance:
