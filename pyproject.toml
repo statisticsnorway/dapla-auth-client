@@ -42,7 +42,7 @@ doc = [
     "sphinx-click>=6.1.0; python_version >= '3.11'",
 ]
 dev = [
-    "pygments>=2.10.0",
+    "pygments>=2.19.0",
     {include-group = "lint"},
     {include-group = "doc"},
     "coverage[toml]>=7.11.3",
