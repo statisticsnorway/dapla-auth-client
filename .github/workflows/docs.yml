@@ -44,16 +44,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --locked --only-dev
+          uv sync --locked --only-group doc
 
       - name: Build doc with Sphinx
         run: |
           uv run sphinx-build docs docs/_build
+          touch docs/_build/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: "docs/_build"
+          include-hidden-files: true
 
   deploy:
     environment:
