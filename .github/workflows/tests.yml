@@ -7,6 +7,9 @@ on:
       - master
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }}
@@ -117,7 +120,7 @@ jobs:
         with:
           enable-cache: true
           version: "${{ steps.uv-version.outputs.version }}"
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Download coverage data
         uses: actions/download-artifact@v8
