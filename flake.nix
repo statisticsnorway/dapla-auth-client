@@ -1,5 +1,5 @@
 {
-  description = "Provide development environment for dapla-toolbelt";
+  description = "Provide development environment for dapla-auth-client";
   inputs.nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst";
 
   outputs = {nixpkgs, ...}: let
@@ -15,9 +15,12 @@
       default = pkgs.mkShell {
         name = "dapla-toolbelt devel";
         packages = with pkgs; [
+          grype
+          nixd
           pre-commit
           pipx
           python313Packages.ruff
+          trivy
           uv
         ];
       };
