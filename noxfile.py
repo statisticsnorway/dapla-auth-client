@@ -12,7 +12,7 @@ from nox import Session
 
 package = "dapla_auth_client"
 python_versions = ["3.11", "3.12", "3.13"]
-python_versions_for_test = python_versions
+python_versions_for_test = [*python_versions, "3.14", "3.15"]
 nox.needs_version = ">= 2025.2.9"
 nox.options.sessions = [
     "pre-commit",
