@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -9,13 +8,9 @@ from unittest.mock import mock_open
 import pytest
 import requests
 import responses
-from google.oauth2.credentials import Credentials
 
-import dapla_auth_client
 from dapla_auth_client import AuthClient
 from dapla_auth_client import MissingConfigurationException
-
-auth_endpoint_url = "https://mock-auth.no/user"
 
 
 @mock.patch.dict(
@@ -111,103 +106,6 @@ def test_fetch_personal_token_scopes_and_audiences(
     mock_exchange_kubernetes_token.assert_called_once_with(
         scopes=scopes if scopes is not None else ["current_group"], audiences=audiences
     )
-
-
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN_EXCHANGE_URL": auth_endpoint_url, "OIDC_TOKEN": "dummy_token"},
-    clear=True,
-)
-@responses.activate
-def test_fetch_google_token_exchange_error() -> None:
-    mock_response = Mock()
-
-    mock_data = {"error_description": "Invalid token"}
-    mock_json = json.dumps(mock_data)
-    mock_response.data = mock_json
-    mock_response.status = 404
-
-    mock_google_request = Mock()
-    mock_google_request.return_value = mock_response
-
-    with mock.patch.object(
-        dapla_auth_client.auth.GoogleAuthRequest,  # type: ignore [attr-defined]
-        "__call__",
-        mock_response,
-    ):
-        with pytest.raises(RuntimeError):
-            client = AuthClient()
-            client.fetch_google_token_from_oidc_exchange(mock_google_request)
-
-
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"OIDC_TOKEN_EXCHANGE_URL": auth_endpoint_url, "OIDC_TOKEN": "fake_access_token"},
-    clear=True,
-)
-@responses.activate
-def test_fetch_google_token_from_exchange_dapla_lab() -> None:
-    mock_response = Mock()
-    mock_response.data = json.dumps(
-        {
-            "access_token": "google_token",
-            "expires_in": round(
-                (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()
-            ),
-        },
-    )
-    mock_response.status = 200
-    mock_google_request = Mock()
-    mock_google_request.return_value = mock_response
-    with mock.patch.object(
-        dapla_auth_client.auth.GoogleAuthRequest,  # type: ignore [attr-defined]
-        "__call__",
-        mock_response,
-    ):
-        client = AuthClient()
-        token, _expiry = client.fetch_google_token_from_oidc_exchange(
-            mock_google_request,
-        )
-
-        assert token == "google_token"
-
-
-def test_credentials_object_refresh_exists() -> None:
-    # We test whether the "refresh" method exists,
-    # since it might be removed in a future release and we are overriding the method.
-    credentials = Credentials("fake-token")  # type: ignore[no-untyped-call]
-    assert hasattr(credentials, "refresh")
-
-
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"DAPLA_SERVICE": "CLOUD_RUN"},
-    clear=True,
-)
-@mock.patch("dapla_auth_client.auth.google.auth.default")
-def test_fetch_credentials_cloud_run(mock_google_auth_default: Mock) -> None:
-    mock_google_auth_default.return_value = (Mock(), Mock())
-    AuthClient.fetch_google_credentials()
-    mock_google_auth_default.assert_called_once()
-
-
-@mock.patch.dict(
-    "dapla_auth_client.auth.os.environ",
-    {"DAPLA_REGION": "DAPLA_LAB", "DAPLA_GROUP_CONTEXT": "dummy-group-developers"},
-    clear=True,
-)
-@mock.patch("dapla_auth_client.auth.google.auth.default")
-def test_fetch_credentials_dapla_lab(mock_google_auth_default: Mock) -> None:
-    mock_google_auth_default.return_value = (Mock(), Mock())
-    AuthClient.fetch_google_credentials()
-    mock_google_auth_default.assert_called_once()
-
-
-@mock.patch("dapla_auth_client.auth.google.auth.default")
-def test_fetch_credentials_default(mock_google_auth_default: Mock) -> None:
-    mock_google_auth_default.return_value = (Mock(), Mock())
-    AuthClient.fetch_google_credentials()
-    mock_google_auth_default.assert_called_once()
 
 
 def test_read_kubernetes_token_success() -> None:

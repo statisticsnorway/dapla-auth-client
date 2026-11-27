@@ -1,29 +1,16 @@
-import json
 import logging
 import os
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from functools import lru_cache
 
-import google.auth
 import requests
-from deprecated import deprecated
-from google.auth.credentials import Credentials
-from google.auth.transport.requests import Request as GoogleAuthRequest
 
 from dapla_auth_client.const import DaplaEnvironment
 from dapla_auth_client.const import DaplaRegion
 from dapla_auth_client.const import DaplaService
 
 logger = logging.getLogger(__name__)
-
-# Refresh window was modified in: https://github.com/googleapis/google-auth-library-python/commit/c6af1d692b43833baca978948376739547cf685a
-# The change was directed towards high latency environments, and should not apply to us.
-# Since we can't force a refresh, the threshold is lowered to keep us from waiting ~4 minutes for a new token.
-# A permanent fix would be to supply credentials with a refresh endpoint
-# that always returns a token that is valid for more than 3m 45s.
-google.auth._helpers.REFRESH_THRESHOLD = timedelta(seconds=20)
 
 
 class AuthClient:
@@ -56,17 +43,6 @@ class AuthClient:
         """Checks if the current Dapla Region is Dapla Lab."""
         _, _, region = AuthClient.get_current_dapla_metadata()
         return region
-
-    @staticmethod
-    def _refresh_handler(  # type: ignore[no-untyped-def]
-        *args,
-        scopes: list[str] | None,
-        **kwargs,
-    ) -> tuple[str, datetime]:
-        # We manually override the refresh_handler method with our custom logic for fetching tokens.
-        # Previously, we directly overrode the `refresh` method. However, this
-        # approach led to deadlock issues in gcsfs/credentials.py's maybe_refresh method.
-        return AuthClient.fetch_google_token()
 
     @staticmethod
     def _read_kubernetes_token() -> str:
@@ -154,135 +130,6 @@ class AuthClient:
             raise RuntimeError("Failed to fetch Keycloak token for Dapla Lab.") from e
 
     @staticmethod
-    @deprecated(
-        reason=(
-            "fetch_google_token_from_oidc_exchange() is deprecated and will be removed in a future release. "
-            "Use Kubernetes/ADC auto-discovery instead of manually exchanging OIDC tokens. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
-        ),
-    )
-    def fetch_google_token_from_oidc_exchange(
-        request: GoogleAuthRequest,
-        scopes: list[str] | None = None,
-    ) -> tuple[str, datetime]:
-        """Fetches the Google token by exchanging an OIDC token.
-
-        Args:
-            request: The GoogleAuthRequest object.
-            scopes: The scopes to request. This is ignored in this implementation.
-
-        Raises:
-            RuntimeError: If the request to the OIDC token exchange endpoint fails.
-
-        Returns:
-            A tuple of (google-token, expiry).
-        """
-        if os.getenv("OIDC_TOKEN_EXCHANGE_URL") is None:
-            raise RuntimeError(
-                "env variable 'OIDC_TOKEN_EXCHANGE_URL' was not found when "
-                "attempting token exchange with OIDC endpoint",
-            )
-
-        response = request.__call__(
-            url=os.environ["OIDC_TOKEN_EXCHANGE_URL"],
-            method="POST",
-            body={
-                "subject_token": os.environ["OIDC_TOKEN"],
-                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-                "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
-                "requested_issuer": "google",
-                "client_id": "onyxia-api",
-            },
-        )  # type: ignore[no-untyped-call]
-
-        if response.status == 200:
-            auth_data = json.loads(response.data)
-            expiry = datetime.now(timezone.utc) + timedelta(
-                seconds=auth_data["expires_in"]
-            )
-            return auth_data["access_token"], expiry
-        error = json.loads(response.data)
-        print("Error: ", error.get("error_description", "Unknown error"))
-        raise RuntimeError("OIDC token exchange failed.")
-
-    @staticmethod
-    @deprecated(
-        reason=(
-            "fetch_google_token() is deprecated and will be removed in a future release. "
-            "Kubernetes/ADC now auto-discovers credentials for you. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
-        ),
-    )
-    def fetch_google_token(
-        request: GoogleAuthRequest | None = None,
-        scopes: list[str] | None = None,
-    ) -> tuple[str, datetime]:
-        """Fetches the Google token for the current user.
-
-        Scopes in the argument is ignored, but are kept for compatibility
-        with the Credentials refresh handler method signature.
-
-        Args:
-            request: The GoogleAuthRequest object.
-            scopes: The scopes to request. This is ignored in this implementation.
-
-        Raises:
-            RuntimeError: If the token exchange fails.
-
-        Returns:
-            A tuple of (google-token, expiry).
-        """
-        try:
-            if request is None:
-                request = GoogleAuthRequest()
-
-            google_token, expiry = AuthClient.fetch_google_token_from_oidc_exchange(
-                request,
-            )
-        except Exception as err:
-            raise RuntimeError(str(err))
-
-        return google_token, expiry
-
-    @staticmethod
-    @deprecated(
-        reason=(
-            "fetch_google_credentials() is deprecated and will be removed in a future release. "
-            "On Kubernetes, Application Default Credentials (ADC) will auto-discover for you. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
-        ),
-    )
-    def fetch_google_credentials() -> Credentials:
-        """Fetches the Google credentials for the current user.
-
-        Raises:
-            RuntimeError: If fails to fetch credentials.
-
-        Returns:
-            The Google "Credentials" object.
-        """
-        env, service, region = AuthClient.get_current_dapla_metadata()
-        credentials: Credentials
-        try:
-            match (env, service, region):
-                case (_, DaplaService.CLOUD_RUN, _):
-                    logger.debug("Auth - Cloud Run detected, using ADC")
-                    credentials, _ = google.auth.default()
-
-                case (_, _, DaplaRegion.DAPLA_LAB):
-                    logger.debug("Auth - Dapla Lab detected, attempting to use ADC")
-                    credentials, _ = google.auth.default()
-
-                case (_, _, _):
-                    logger.debug("Auth - Default authentication used (ADC)")
-                    credentials, _ = google.auth.default()
-
-        except Exception as err:
-            raise RuntimeError(str(err))
-
-        return credentials
-
-    @staticmethod
     def fetch_personal_token(
         scopes: list[str] | None = None,
         audiences: list[str] | None = None,
@@ -316,28 +163,6 @@ class AuthClient:
             scopes=scopes, audiences=audiences
         )
         return keycloak_token
-
-    @staticmethod
-    @lru_cache(maxsize=1)
-    @deprecated(
-        reason=(
-            "fetch_email_from_credentials() is deprecated and will be removed in a future release. "
-            "Kubernetes/Google ADC now auto-discovers credentials. "
-            "You can rely on Application Default Credentials (ADC) instead of calling this explicitly. "
-            "Read more at: https://manual.dapla.ssb.no/blog/posts/2025-06-12-dapla-auth-client"
-        ),
-    )
-    def fetch_email_from_credentials() -> str | None:  # type: ignore[unused-ignore]
-        """Retrieves an e-mail based on current Google Credentials. Potentially makes a Google API call."""
-        if os.getenv("DAPLA_REGION") == DaplaRegion.DAPLA_LAB.value:
-            return os.getenv("DAPLA_USER")
-
-        credentials = AuthClient.fetch_google_credentials()
-        response = requests.get(
-            url=f"https://oauth2.googleapis.com/tokeninfo?access_token={credentials.token}",
-        )
-
-        return response.json().get("email") if response.status_code == 200 else None
 
 
 class MissingConfigurationException(Exception):
