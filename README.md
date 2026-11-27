@@ -35,7 +35,7 @@
 
 ## Requirements
 
-- Python >3.8 (3.10 is preferred)
+- Python 3.11+
 - uv, install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## Installation
