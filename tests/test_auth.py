@@ -1,6 +1,6 @@
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
-from datetime import timezone
 from unittest import mock
 from unittest.mock import Mock
 from unittest.mock import mock_open
@@ -32,7 +32,7 @@ def test_fetch_personal_token_for_dapla_lab(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now(timezone.utc) + timedelta(hours=1),
+        datetime.now(UTC) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
@@ -95,7 +95,7 @@ def test_fetch_personal_token_scopes_and_audiences(
 ) -> None:
     mock_exchange_kubernetes_token.return_value = (
         "dummy_token",
-        datetime.now(timezone.utc) + timedelta(hours=1),
+        datetime.now(UTC) + timedelta(hours=1),
     )
     mock_read_kubernetes_token.return_value = "dummy_kubernetes_token"
 
@@ -174,7 +174,7 @@ def test_exchange_kubernetes_token_success(
     assert token == "keycloak-abc123"
     assert isinstance(expiry, datetime)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     delta = expiry - now
     assert (
         timedelta(seconds=fake_expires_in - 2)

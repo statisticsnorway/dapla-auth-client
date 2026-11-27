@@ -3,7 +3,7 @@ name = "dapla-auth-client"
 version = "1.2.6"
 description = "Dapla Auth Client"
 authors = [{ name = "Dapla Developers", email = "dapla-platform-developers@ssb.no" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = "MIT"
 classifiers = ["Development Status :: 5 - Production/Stable"]
@@ -31,12 +31,12 @@ lint = [
     "ruff>=0.14.5",
 ]
 doc = [
-    "furo>=2025.9.25; python_version >= '3.11'",
-    "myst-parser>=4.0.1; python_version >= '3.11'",
-    "sphinx>=8.2.3; python_version >= '3.11'",
-    "sphinx-autobuild>=2025.8.25; python_version >= '3.11'",
-    "sphinx-autodoc-typehints>=3.5.2; python_version >= '3.11'",
-    "sphinx-click>=6.1.0; python_version >= '3.11'",
+    "furo>=2025.9.25; python_full_version >= '3.11.5'",
+    "myst-parser>=4.0.1; python_full_version >= '3.11.5'",
+    "sphinx>=8.2.3; python_full_version >= '3.11.5'",
+    "sphinx-autobuild>=2025.8.25; python_full_version >= '3.11.5'",
+    "sphinx-autodoc-typehints>=3.5.2; python_full_version >= '3.11.5'",
+    "sphinx-click>=6.1.0; python_full_version >= '3.11.5'",
 ]
 dev = [
     "pygments>=2.19.0",
@@ -91,7 +91,7 @@ show_error_context = true
 force-exclude = true  # Apply excludes to pre-commit
 show-fixes = true
 src = ["src", "tests"]
-target-version = "py310"  # Minimum Python version supported
+target-version = "py311"  # Minimum Python version supported
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 extend-exclude = [
     "__pycache__",
